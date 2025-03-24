@@ -73,40 +73,54 @@ async function generateQRCode() {
 
         await new Promise(resolve => setTimeout(resolve, 50));
 
-        const mainCanvas = document.createElement("canvas");
-        mainCanvas.width = size;
-        mainCanvas.height = size;
-        const ctx = mainCanvas.getContext("2d");
-
-        // Draw background
-        ctx.fillStyle = colorLight;
-        ctx.fillRect(0, 0, size, size);
-
-        // Draw QR code
+        const qrSvg = tempContainer.querySelector("svg");
         const qrCanvas = tempContainer.querySelector("canvas");
-        ctx.drawImage(qrCanvas, 0, 0);
 
-        // Add logo if exists
-        if (logo) {
-            const img = new Image();
-            img.src = logo;
-            await new Promise((resolve) => {
-                img.onload = resolve;
-                img.onerror = resolve; // Handle image loading errors
-            });
-            if (img.complete && img.naturalHeight !== 0) {
-                const logoSize = size * 0.2;
-                const x = (size - logoSize) / 2;
-                const y = (size - logoSize) / 2;
-                ctx.drawImage(img, x, y, logoSize, logoSize);
+        if (formatSelect.value === "svg") {
+            // Handle SVG format
+            const svgData = new XMLSerializer().serializeToString(qrSvg);
+            const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
+            const svgUrl = URL.createObjectURL(svgBlob);
+            qrContainer.appendChild(qrSvg);
+            download.href = svgUrl;
+            download.download = `QRCode.svg`;
+        } else {
+            // Handle PNG and JPG formats
+            const mainCanvas = document.createElement("canvas");
+            mainCanvas.width = size;
+            mainCanvas.height = size;
+            const ctx = mainCanvas.getContext("2d");
+
+            // Draw background
+            ctx.fillStyle = colorLight;
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw QR code
+            ctx.drawImage(qrCanvas, 0, 0);
+
+            // Add logo if exists
+            if (logo) {
+                const img = new Image();
+                img.src = logo;
+                await new Promise((resolve) => {
+                    img.onload = resolve;
+                    img.onerror = resolve; // Handle image loading errors
+                });
+                if (img.complete && img.naturalHeight !== 0) {
+                    const logoSize = size * 0.2;
+                    const x = (size - logoSize) / 2;
+                    const y = (size - logoSize) / 2;
+                    ctx.drawImage(img, x, y, logoSize, logoSize);
+                }
             }
+
+            qrContainer.appendChild(mainCanvas);
+            const dataUrl = await resolveDataUrl();
+            download.href = dataUrl;
+            download.download = `QRCode.${formatSelect.value}`;
         }
 
-        qrContainer.appendChild(mainCanvas);
-        const dataUrl = await resolveDataUrl();
-        download.href = dataUrl;
-        download.download = `QRCode.${formatSelect.value}`;
-        saveToHistory(qrText.value, dataUrl, formatSelect.value);
+        saveToHistory(qrText.value, download.href, formatSelect.value);
     } catch (error) {
         console.error("QR Generation Error:", error);
         alert("Failed to generate QR code. Please try again.");
@@ -183,7 +197,7 @@ async function handleShare() {
 
         const dataUrl = await resolveDataUrl();
         const format = formatSelect.value;
-        const mimeType = format === "jpg" ? "image/jpeg" : "image/png";
+        const mimeType = format === "jpg" ? "image/jpeg" : format === "png" ? "image/png" : "image/svg+xml";
         const blob = await (await fetch(dataUrl)).blob();
         const file = new File([blob], `QRCode.${format}`, { type: mimeType });
 
