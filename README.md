@@ -1,4 +1,4 @@
-# QR Code Generator
+# QR Code Generator 
 
 A modern, responsive QR Code Generator with customization options and history tracking.
 
@@ -46,11 +46,11 @@ No installation required! Simply open `index.html` in your browser.
 
 ## Code Structure
 qr-code-generator/
-│── index.html # Main HTML file
-│── style.css # CSS styles
-│── index.js # JavaScript functionality
-│── download.svg # Download icon
-│── share.svg # Share icon
+- **index.html** # Main HTML file
+- **style.css** # CSS styles
+- **index.js** # JavaScript functionality
+- **download.svg** # Download icon
+- **share.svg** # Share icon
 
 ## Browser Support
 
